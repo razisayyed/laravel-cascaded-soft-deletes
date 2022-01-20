@@ -21,7 +21,7 @@ Installaton
 To install the package, in terminal:
 
 ```
-composer require kalnoy/nestedset
+composer require razisayyed/laravel-cascaded-soft-deletes
 ```
 
 ### Setting up
