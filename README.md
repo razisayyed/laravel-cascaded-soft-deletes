@@ -11,14 +11,14 @@ This is a Laravel 8 package for cascding SoftDeletes delete/restore actions.
 
 Although this project is completely free for use, I appreciate any support!
 
--   __[Donate via PayPal](https://www.paypal.me/razisayyed)__
+-   __[Donate via PayPal](https://www.paypal.me/RaziAlsayyed)__
 
 __Contents:__
 
 - [Installation](#installation)
 
-Installaton
------------
+Installation
+------------
 To install the package, in terminal:
 
 ```
