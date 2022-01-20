@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/razisayyed/laravel-cascaded-soft-deletes.svg?branch=master)](https://travis-ci.org/razisasyyed/laravel-cascaded-soft-deletes)
+[![Build Status](https://github.com/razisayyed/laravel-cascaded-soft-deletes/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/razisayyed/laravel-cascaded-soft-deletes/actions/workflows/continuous-integration.yml?query=branch%3Amain)
 [![Total Downloads](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/downloads.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
 [![Latest Stable Version](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/v/stable.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
 [![Latest Unstable Version](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/v/unstable.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
