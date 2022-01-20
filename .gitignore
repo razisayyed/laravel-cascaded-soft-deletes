@@ -1,4 +1,5 @@
 /coverage
+clover.xml
 .phpunit.result.cache
 composer.lock
 /vendor
