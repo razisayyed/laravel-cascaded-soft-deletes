@@ -29,5 +29,18 @@ jobs:
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
 
-    - name: Run test suite
-      run: composer run-script test
+    - name: PHPUnit Tests
+      uses: php-actions/phpunit@v2
+      with:
+        php_extensions: xdebug
+        bootstrap: vendor/autoload.php
+        configuration: phpunit.xml
+        args: ---coverage-clover clover.xml
+      env:
+        XDEBUG_MODE: coverage
+        TEST_NAME: Scarlett
+
+    - uses: codecov/codecov-action@v2
+      with:
+        files: ./clover.xml
+        fail_ci_if_error: true

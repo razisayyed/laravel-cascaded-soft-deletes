@@ -13,6 +13,6 @@ WORKDIR /app
 
 ENV XDEBUG_MODE=coverage
 
-CMD [ "./vendor/bin/phpunit", "--coverage-html=coverage" ]
+CMD [ "./vendor/bin/phpunit" ]
 
 
