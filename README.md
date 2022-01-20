@@ -1,3 +1,4 @@
+[![PHP Composer](https://github.com/razisayyed/laravel-cascaded-soft-deletes/actions/workflows/php.yml/badge.svg?branch=main)](https://github.com/razisayyed/laravel-cascaded-soft-deletes/actions/workflows/php.yml)
 [![Build Status](https://github.com/razisayyed/laravel-cascaded-soft-deletes/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/razisayyed/laravel-cascaded-soft-deletes/actions/workflows/continuous-integration.yml?query=branch%3Amain)
 [![Total Downloads](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/downloads.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
 [![Latest Stable Version](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/v/stable.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
