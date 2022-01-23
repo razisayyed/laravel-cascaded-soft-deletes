@@ -1,26 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-        backupGlobals="false" 
-        backupStaticAttributes="false" 
-        bootstrap="phpunit.php" 
-        colors="true" 
-        convertErrorsToExceptions="true" 
-        convertNoticesToExceptions="true" 
-        convertWarningsToExceptions="true" 
-        processIsolation="false" 
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        backupGlobals="false"
+        backupStaticAttributes="false"
+        bootstrap="vendor/autoload.php"
+        colors="true"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        processIsolation="false"
         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+        <!-- bootstrap="phpunit.php" -->
   <coverage>
+    <include>
+        <directory suffix=".php">./src</directory>
+    </include>
+    <report>
+      <html outputDirectory="build/coverage"/>
+      <text outputFile="build/coverage.txt"/>
+      <clover outputFile="build/logs/clover.xml"/>
+    </report>
+  </coverage>
+  <logging>
+    <junit outputFile="build/report.junit.xml"/>
+  </logging>
+
+  <!-- <coverage>
     <include>
       <directory>./src</directory>
     </include>
-  </coverage>
+  </coverage> -->
   <testsuites>
     <testsuite name="Package Test Suite">
       <directory suffix=".php">./tests/</directory>
     </testsuite>
   </testsuites>
-    <logging>
-      <log type="coverage-clover" target="clover.xml"/>
-    </logging>
+    <php>
+        <env name="APP_KEY" value="AckfSECXIvnK5r28GVIWUAxmbBSjTsmF"/>
+        <env name="APP_ENV" value="testing"/>
+
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="QUEUE_DRIVER" value="sync"/>
+
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_HOST" value="mysql"/>
+        <env name="DB_PORT" value="3306"/>
+        <env name="DB_DATABASE" value="test_database"/>
+        <env name="DB_USERNAME" value="admin"/>
+        <env name="DB_PASSWORD" value="adminpass"/>
+    </php>
+
 </phpunit>
 

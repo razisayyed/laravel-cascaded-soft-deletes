@@ -1,73 +1,124 @@
 <?php declare(strict_types=1);
 
-use Illuminate\Database\Capsule\Manager as Capsule;
+namespace RaziAlsayyed\LaravelCascadedSoftDeletes\Tests;
+
+use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\LogicException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\RuntimeException;
+use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\Block;
+use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\MissingMethodPage;
+use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\MissingSoftDeletesPage;
+use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\Page;
+use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\PageCallbackCascade;
+use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\Plugin;
 
 use function PHPUnit\Framework\assertEquals;
 
 /**
  * @covers \RaziAlsayyed\LaravelCascadedSoftDeletes\Traits\CascadedSoftDeletes
+ * @covers \RaziAlsayyed\LaravelCascadedSoftDeletes\Jobs\CascadeSoftDeletes
  */
-class NodeTest extends PHPUnit\Framework\TestCase
+class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
 {
-    public static function setUpBeforeClass() : void
-    {
-        $schema = Capsule::schema();
 
-        $schema->dropIfExists('categories');
-
-        Capsule::disableQueryLog();
-
-        $schema->create('pages', function (\Illuminate\Database\Schema\Blueprint $table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->softDeletes();
-        });
-
-        $schema->create('blocks', function (\Illuminate\Database\Schema\Blueprint $table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->foreignId('page_id')->constrained()->onDelete('cascade');
-            $table->softDeletes();
-        });
-
-        $schema->create('plugins', function (\Illuminate\Database\Schema\Blueprint $table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->foreignId('block_id')->constrained()->onDelete('cascade');
-            $table->softDeletes();
-        });
-
-        Capsule::enableQueryLog();
-    }
+    // use RefreshDatabase;
 
     public function setUp() : void
     {
-        $pages = include __DIR__.'/data/pages.php';
-        Capsule::table('pages')->insert($pages);
+        parent::setUp();
 
-        $blocks = include __DIR__.'/data/blocks.php';
-        Capsule::table('blocks')->insert($blocks);
+        // Schema::dropIfExists('plugins');
+        // Schema::dropIfExists('blocks');
+        // Schema::dropIfExists('pages');
 
-        $plugins = include __DIR__.'/data/plugins.php';
-        Capsule::table('plugins')->insert($plugins);
+        Schema::create('pages', function($table) {
+            $table->id();
+            $table->string('name');
+            $table->softDeletes('deleted_at', 6);
+        });
 
-        Capsule::flushQueryLog();
+        Schema::create('blocks', function($table) {
+            $table->id();
+            $table->string('name');
+            $table->foreignId('page_id')->constrained()->onDelete('cascade');
+            $table->softDeletes('deleted_at', 6);
+        });
 
-        date_default_timezone_set('Asia/Hebron');
+        Schema::create('plugins', function($table) {
+            $table->id();
+            $table->string('name');
+            $table->foreignId('block_id')->constrained()->onDelete('cascade');
+            $table->softDeletes('deleted_at', 6);
+        });
+
+        Page::insert([
+            ['name' => 'page 1'],
+            ['name' => 'page 2'],
+            ['name' => 'page 3']
+        ]);
+
+        Block::insert([
+            ['name' => 'block 1 - page 1', 'page_id' => 1],
+            ['name' => 'block 2 - page 1', 'page_id' => 1],
+            ['name' => 'block 1 - page 2', 'page_id' => 2],
+            ['name' => 'block 2 - page 2', 'page_id' => 2]
+        ]);
+
+        Plugin::insert([
+            ['id' => 1, 'name' => 'plugin 1 - block 1 - page 1', 'block_id' => 1],
+            ['id' => 2, 'name' => 'plugin 2 - block 1 - page 1', 'block_id' => 1],
+            ['id' => 3, 'name' => 'plugin 3 - block 1 - page 1', 'block_id' => 1],
+            ['id' => 4, 'name' => 'plugin 1 - block 1 - page 2', 'block_id' => 3]
+        ]);
+
     }
 
     public function tearDown() : void
     {
-        Capsule::table('pages')->truncate();
-        Capsule::table('blocks')->truncate();
-        Capsule::table('plugins')->truncate();
-    }   
+        Schema::drop('plugins');
+        Schema::drop('blocks');
+        Schema::drop('pages');
+
+        parent::tearDown();
+    }
+
+    /**
+     * Define environment setup.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return void
+     */
+    protected function defineEnvironment($app)
+    {
+        // Setup default database to use sqlite :memory:
+        $app['config']->set('database.default', 'testbench');
+        $app['config']->set('database.connections.testbench', [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+        ]);
+    }
+
+    // /**
+    //  * Define database migrations.
+    //  *
+    //  * @return void
+    //  */
+    // protected function defineDatabaseMigrations()
+    // {
+    //     $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
+    // }
+
+    protected function getApplicationTimezone($app)
+    {
+        return 'Asia/Hebron';
+    }
 
     public function testDelete()
     {
-        $page = $this->findPage('page 1');
+
+        $page = Page::whereName('page 1')->first();
 
         $originalBlocksCount = $this->pageBlocksCount('page 1');
 
@@ -80,7 +131,8 @@ class NodeTest extends PHPUnit\Framework\TestCase
 
     public function testTwoLevelDelete()
     {
-        $page = $this->findPage('page 1');
+
+        $page = Page::whereName('page 1')->first();
 
         $originalPluginsCount = $this->blockPluginsCount('block 1 - page 1');
 
@@ -100,30 +152,29 @@ class NodeTest extends PHPUnit\Framework\TestCase
 
     public function testRestore()
     {
-        $page = $this->findPage('page 1');
+        $page = Page::whereName('page 1')->first();
 
         // this block must not be restored with page
-        $this->findBlock('block 2 - page 1')->delete();
+        $block = Block::whereName('block 2 - page 1')->first();
+        $block->delete();
+
         $originalBlocksCount = $this->pageBlocksCount('page 1');
         assertEquals($originalBlocksCount, 1, 'wrong blocks count after deleting one block!');
 
         // this plugin must not be restored with page
-        $this->findPlugin('plugin 1 - block 1 - page 1')->delete();
+        Plugin::whereName('plugin 1 - block 1 - page 1')->first()->delete();
         $originalPluginsCount = $this->blockPluginsCount('block 1 - page 1');
         assertEquals($originalPluginsCount, 2, 'wrong plugins count after deleting one plugin!');
-        
-        sleep(1);
 
         $page->delete();
 
         assertEquals($this->pageBlocksCount('page 1'), 0, 'undeleted block(s) found after deleting page!');
 
-        // $page = $this->findPage('page 1', true);
-
         $page->restore();
 
         assertEquals($this->pageBlocksCount('page 1'), 1, 'wrong blocks count after restoring page!');
         assertEquals($this->blockPluginsCount('block 1 - page 1'), 2, 'wrong plugins coung after restoring page!');
+
     }
 
     public function testMissingMethod()
@@ -131,9 +182,7 @@ class NodeTest extends PHPUnit\Framework\TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('getCascadedSoftDeletes function not found!');
 
-        $q = new MissingMethodPage;
-
-        $q->whereName('page 1')->first()->delete();
+        MissingMethodPage::whereName('page 1')->first()->delete();
 
     }
 
@@ -142,16 +191,13 @@ class NodeTest extends PHPUnit\Framework\TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('relationship blocks does not use SoftDeletes trait.');
 
-        $q = new MissingSoftDeletesPage;
-
-        $q->whereName('page 1')->first()->delete();
+        MissingSoftDeletesPage::whereName('page 1')->first()->delete();
 
     }
 
     public function testCallbackCascadeDelete()
     {
-        $q = new PageCallbackCascade;
-        $page = $q->newQuery()->whereName('page 1')->first();
+        $page = PageCallbackCascade::whereName('page 1')->first();
 
         $page->delete();
 
