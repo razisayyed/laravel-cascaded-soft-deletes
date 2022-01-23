@@ -4,13 +4,14 @@ namespace RaziAlsayyed\LaravelCascadedSoftDeletes\Traits;
 
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\LogicException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\RuntimeException;
+use RaziAlsayyed\LaravelCascadedSoftDeletes\Jobs\CascadeSoftDeletes;
 
 trait CascadedSoftDeletes
 {
 
     /**
      * Keeps track of Instance deleted_at time.
-     * 
+     *
      * @var \Carbon\Carbon
      */
     public static $instanceDeletedAt;
@@ -20,7 +21,7 @@ trait CascadedSoftDeletes
      */
     protected static function bootCascadedSoftDeletes()
     {
-        
+
         static::deleted(function ($model) {
             $model->deleteCascadedSoftDeletes();
         });
@@ -39,20 +40,20 @@ trait CascadedSoftDeletes
     /**
      * Delete the cascaded relations.
      */
-    protected function deleteCascadedSoftDeletes()
+    protected function deleteCascadedSoftDeletes() : void
     {
         if($this->isHardDeleting())
             return;
 
-        $this->runCascadedSoftDeletesAction('delete');
+        CascadeSoftDeletes::dispatch($this, 'delete', null);
     }
 
     /**
      * Restore the cascaded relations.
      */
-    protected function restoreCascadedSoftDeleted()
+    protected function restoreCascadedSoftDeleted() : void
     {
-        $this->runCascadedSoftDeletesAction('restore');
+        CascadeSoftDeletes::dispatch($this, 'restore', static::$instanceDeletedAt);
     }
 
     /**
@@ -60,19 +61,19 @@ trait CascadedSoftDeletes
      *
      * @param $action
      */
-    protected function runCascadedSoftDeletesAction($action)
+    public function cascadeSoftDeletes(string $action, ?\Carbon\Carbon $instanceDeletedAt = null) : void
     {
         if(!method_exists($this, 'getCascadedSoftDeletes')) {
             throw new RuntimeException('getCascadedSoftDeletes function not found!');
         }
 
-        collect($this->getCascadedSoftDeletes())->each(function($item, $key) use ($action) {
+        collect($this->getCascadedSoftDeletes())->each(function($item, $key) use ($action, $instanceDeletedAt) {
 
             $relation = $key;
             if(is_numeric($key))
                 $relation = $item;
 
-            if(!is_callable($item) && !$this->relationUsesSoftDelete($relation)) 
+            if(!is_callable($item) && !$this->relationUsesSoftDelete($relation))
                 throw new LogicException('relationship '.$relation.' does not use SoftDeletes trait.');
 
             if(is_callable($item))
@@ -85,10 +86,19 @@ trait CascadedSoftDeletes
             else
                 $query
                     ->onlyTrashed()
-                    ->where($this->getDeletedAtColumn(), '>=', static::$instanceDeletedAt)
+                    ->where($this->getDeletedAtColumn(), '>=', $instanceDeletedAt->format('Y-m-d H:i:s.u'))
                     ->get()
                     ->each
                     ->restore();
+
+            // else {
+            //     $query = $query
+            //         ->withTrashed()
+            //         ->where($query->qualifyColumn($this->getDeletedAtColumn()), '>=', $instanceDeletedAt);
+
+            //     dd($query->toSql(), $query->getBindings(), $query->pluck('deleted_at'));
+
+            // }
 
         });
 
@@ -99,15 +109,17 @@ trait CascadedSoftDeletes
      *
      * @return bool
      */
-    protected function isHardDeleting()
+    protected function isHardDeleting() : bool
     {
         return ! $this->instanceUsesSoftDelete() || $this->forceDeleting;
     }
 
     /**
+     * Check if the instance uses SoftDeletes trait.
+     *
      * @return bool
      */
-    public static function instanceUsesSoftDelete()
+    protected static function instanceUsesSoftDelete() : bool
     {
         static $softDelete;
 
@@ -120,7 +132,12 @@ trait CascadedSoftDeletes
         return $softDelete;
     }
 
-    public static function relationUsesSoftDelete($relation)
+    /**
+     * Check if the relation uses SoftDeletes trait.
+     *
+     * @return bool
+     */
+    public static function relationUsesSoftDelete($relation) : bool
     {
         static $softDeletes;
 
