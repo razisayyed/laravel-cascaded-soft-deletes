@@ -1,4 +1,4 @@
-[![PHP Composer](https://github.com/razisayyed/laravel-cascaded-soft-deletes/actions/workflows/php.yml/badge.svg?branch=main)](https://github.com/razisayyed/laravel-cascaded-soft-deletes/actions/workflows/php.yml)
+[![Tests](https://github.com/razisayyed/laravel-cascaded-soft-deletes/actions/workflows/php.yml/badge.svg)](https://github.com/razisayyed/laravel-cascaded-soft-deletes/actions/workflows/php.yml)
 [![codecov](https://codecov.io/gh/razisayyed/laravel-cascaded-soft-deletes/branch/main/graph/badge.svg?token=8E48QF245M)](https://codecov.io/gh/razisayyed/laravel-cascaded-soft-deletes)
 [![Total Downloads](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/downloads.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
 [![Latest Stable Version](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/v/stable.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
@@ -7,6 +7,7 @@
 
 This is a Laravel 8 package for cascding SoftDeletes delete/restore actions.
 
+*   **Laravel 7.0** is supported since v0.1.0
 *   **Laravel 8.0** is supported since v0.1.0
 
 Although this project is completely free for use, I appreciate any support!
@@ -15,7 +16,22 @@ Although this project is completely free for use, I appreciate any support!
 
 __Contents:__
 
+- [Features](#features)
+- [Notes](#notes)
 - [Installation](#installation)
+
+Features
+--------
+*   Cascade soft delete for chosen relations
+*   Cascade restore for chosen relations (only models with deleted_at >= restoredInstance->deleted_at value will be restored)
+*   Ability to follow custom query
+*   By default a cascade action will be added to default queue (upcomming version will add options to disable this feature or choose different queue)
+
+Notes
+-----
+*   The idea of this package has been extracted from the fabulous package [laravel-nestedset](https://github.com/lazychaser/laravel-nestedset)
+*   Because the package relies on deleted_at column to make the comparision when it cascades restore action, it is recommended to use ```$table->softDeletes('deleted_at', 6);``` in the migration files. Otherwise, you may restore a related model that has been deleted before the instance in a fraction of the second.
+
 
 Installation
 ------------
