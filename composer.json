@@ -11,12 +11,12 @@
     ],
     "require": {
         "php": "^7.3|^8.0",
-        "illuminate/support": "^8.0"
+        "illuminate/support": "^7.0|^8.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^6.0",
-        "phpunit/phpunit": "^9.0",
-        "nunomaduro/collision": "^5.10"
+        "orchestra/testbench": "^5.0|^6.0",
+        "phpunit/phpunit": "^8.5.10|^9.3.3",
+        "nunomaduro/collision": "^4.3|^5.10"
     },
     "autoload": {
         "psr-4": {
