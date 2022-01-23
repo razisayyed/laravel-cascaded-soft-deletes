@@ -1,4 +1,4 @@
-name: PHP Composer
+name: Tests
 
 on:
   push:
@@ -7,12 +7,45 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  tests:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
+    name: P ${{ matrix.php }} - L ${{ matrix.laravel }} - D ${{ matrix.dependency_version }}
+
+    strategy:
+      # fail-fast: true
+      fail-fast: true
+      matrix:
+        dependency_version: [prefer-stable]
+        test: [1, 2, 3, 4, 5, 6, 7]
+        include:
+          - { test: 1, php: ^7.3, laravel: ^7.0, testbench: ^5.0, collision: ^4.3, phpunit: 9.3.3 }
+          - { test: 2, php: ^7.3, laravel: ^8.0, testbench: ^6.0, collision: ^5.10, phpunit: 9.5.10 }
+          - { test: 3, php: ^7.4, laravel: ^7.0, testbench: ^5.0, collision: ^4.3, phpunit: 9.3.3 }
+          - { test: 4, php: ^7.4, laravel: ^8.0, testbench: ^6.0, collision: ^5.10, phpunit: 9.5.10 }
+          - { test: 5, php: ^8.0, laravel: ^7.0, testbench: ^5.0, collision: ^4.3, phpunit: 9.3.3 }
+          - { test: 6, php: ^8.0, laravel: ^8.0, testbench: ^6.0, collision: ^5.10, phpunit: 9.5.10 }
+          - { test: 7, php: ^8.1, laravel: ^8.0, testbench: ^6.0, collision: ^5.0, phpunit: 9.5.10 }
+
 
     steps:
     - uses: actions/checkout@v2
+
+    - id: get-php-version
+      run: |
+        php_version=$(echo ${{ matrix.php }} | cut -c 2-)
+        echo "::set-output name=php_version::$php_version"
+
+    # - id: get-phpunit-version
+    #   run: |
+    #     phpunit_version=$(echo ${{ matrix.phpunit }} | cut -c 2-)
+    #     echo "::set-output name=phpunit_version::$phpunit_version"
+
+    - name: Setup PHP with PECL extension
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '${{steps.get-php-version.outputs.php_version}}'
+        extensions: xdebug
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
@@ -22,24 +55,33 @@ jobs:
       uses: actions/cache@v2
       with:
         path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
+        key: ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-${{ hashFiles('composer.json') }}
+        # restore-keys: |
+        #   ${{ runner.os }}-php-
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      run: |
+        composer require "php:${{ matrix.php }}" "illuminate/support:${{ matrix.laravel }}" --no-interaction --no-update
+        composer require --dev "phpunit/phpunit:${{ matrix.phpunit }}" "nunomaduro/collision:${{ matrix.collision }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+        composer update --${{ matrix.dependency_version }} --prefer-dist --no-interaction --no-progress
+
+    # - name: PHPUnit Tests
+    #   run: |
+    #     vendor/bin/phpunit --coverage-clover build/logs/${{ matrix.php }}-${{ matrix.laravel }}.xml
 
     - name: PHPUnit Tests
-      uses: php-actions/phpunit@v2
+      uses: php-actions/phpunit@v3
       with:
-        php_extensions: xdebug
+        php_version: ${{ steps.get-php-version.outputs.php_version }}
+        version: ${{ matrix.phpunit }}
+        php_extensions: xdebug sqlite3
         configuration: phpunit.xml
-        # args: --coverage-clover clover.xml
       env:
         XDEBUG_MODE: coverage
-        TEST_NAME: Scarlett
+      #   TEST_NAME: Scarlett
 
     - uses: codecov/codecov-action@v2
+      if: matrix.php == '^8.1' && matrix.laravel == '^8.0'
       with:
         files: ./build/logs/clover.xml
         fail_ci_if_error: true
