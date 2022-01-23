@@ -7,12 +7,10 @@ RUN apt-get update \
 RUN pecl install xdebug \
     && docker-php-ext-enable xdebug
 
-COPY . /app
-
 WORKDIR /app
+
+COPY . /app
 
 ENV XDEBUG_MODE=coverage
 
-CMD [ "./vendor/bin/phpunit" ]
-
-
+CMD [ "vendor/bin/phpunit" ]

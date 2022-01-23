@@ -1,0 +1,22 @@
+// https://aka.ms/devcontainer.json
+{
+	"name": "laravel-cascaded-soft-deletes devcontainer image",
+	"build": { 
+		"dockerfile": "../Dockerfile",
+		"context": "..",
+	},
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+	"workspaceFolder": "/workspace",
+	"settings": {},
+	"extensions": [
+		"bmewburn.vscode-intelephense-client",
+		"amiralizadeh9480.laravel-extra-intellisense",
+		"onecentlin.laravel-extension-pack",
+		"esbenp.prettier-vscode",
+		"junstyle.php-cs-fixer"
+	]
+	// "dockerComposeFile": [
+	// 	"../docker-compose.yml"
+	// ],
+	// "service": "php.test",
+}
