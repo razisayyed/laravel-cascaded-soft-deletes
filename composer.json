@@ -1,7 +1,7 @@
 {
     "name": "razisayyed/laravel-cascaded-soft-deletes",
     "description": "Cascades delete/restore Soft Deletable relationships",
-    "keywords": ["laravel", "database", "orm", "eloquent"],
+    "keywords": ["laravel", "database", "orm", "eloquent", "soft deletes", "cascade"],
     "license": "MIT",
     "authors": [
         {
