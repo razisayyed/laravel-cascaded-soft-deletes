@@ -1,6 +1,7 @@
-/build
-/coverage
+build/
+coverage/
 clover.xml
 .phpunit.result.cache
 composer.lock
-/vendor
+vendor/
+.idea/
