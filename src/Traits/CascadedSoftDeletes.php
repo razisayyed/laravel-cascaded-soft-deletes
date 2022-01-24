@@ -45,7 +45,11 @@ trait CascadedSoftDeletes
         if($this->isHardDeleting())
             return;
 
-        CascadeSoftDeletes::dispatch($this, 'delete', null);
+        if(config('cascaded-soft-deletes.queue_cascades_by_default') === true)
+            CascadeSoftDeletes::dispatch($this, 'delete', null)->onQueue(config('cascaded-soft-deletes.queue_name'));
+        else
+            CascadeSoftDeletes::dispatchSync($this, 'delete', null);
+
     }
 
     /**
@@ -53,7 +57,11 @@ trait CascadedSoftDeletes
      */
     protected function restoreCascadedSoftDeleted() : void
     {
-        CascadeSoftDeletes::dispatch($this, 'restore', static::$instanceDeletedAt);
+        if(config('cascaded-soft-deletes.queue_cascades_by_default') === true)
+            CascadeSoftDeletes::dispatch($this, 'restore', static::$instanceDeletedAt)->onQueue(config('cascaded-soft-deletes.queue_name'));
+        else
+            CascadeSoftDeletes::dispatchSync($this, 'restore', static::$instanceDeletedAt);
+        // CascadeSoftDeletes::dispatch($this, 'restore', static::$instanceDeletedAt);
     }
 
     /**
@@ -63,11 +71,15 @@ trait CascadedSoftDeletes
      */
     public function cascadeSoftDeletes(string $action, ?\Carbon\Carbon $instanceDeletedAt = null) : void
     {
-        if(!method_exists($this, 'getCascadedSoftDeletes')) {
-            throw new RuntimeException('getCascadedSoftDeletes function not found!');
+        if(method_exists($this, 'getCascadedSoftDeletes')) {
+            $relations = collect($this->getCascadedSoftDeletes());
+        } else if(property_exists($this, 'cascadedSoftDeletes')) {
+            $relations = collect($this->cascadedSoftDeletes);
+        } else {
+            throw new RuntimeException('neither getCascadedSoftDeletes function or cascaded_soft_deletes property exists!');
         }
 
-        collect($this->getCascadedSoftDeletes())->each(function($item, $key) use ($action, $instanceDeletedAt) {
+        $relations->each(function($item, $key) use ($action, $instanceDeletedAt) {
 
             $relation = $key;
             if(is_numeric($key))
