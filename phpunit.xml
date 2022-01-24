@@ -14,6 +14,9 @@
     <include>
         <directory suffix=".php">./src</directory>
     </include>
+    <exclude>
+      <directory suffix=".php">src/config</directory>
+    </exclude>
     <report>
       <!-- <html outputDirectory="build/coverage"/> -->
       <!-- <text outputFile="build/coverage.txt"/> -->
@@ -41,12 +44,12 @@
         <env name="CACHE_DRIVER" value="array"/>
         <env name="QUEUE_DRIVER" value="sync"/>
 
-        <env name="DB_CONNECTION" value="mysql"/>
+        <!-- <env name="DB_CONNECTION" value="mysql"/>
         <env name="DB_HOST" value="mysql"/>
         <env name="DB_PORT" value="3306"/>
         <env name="DB_DATABASE" value="test_database"/>
         <env name="DB_USERNAME" value="admin"/>
-        <env name="DB_PASSWORD" value="adminpass"/>
+        <env name="DB_PASSWORD" value="adminpass"/> -->
     </php>
 
 </phpunit>
