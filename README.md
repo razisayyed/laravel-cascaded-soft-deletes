@@ -19,13 +19,14 @@ __Contents:__
 - [Features](#features)
 - [Notes](#notes)
 - [Installation](#installation)
+- [License](#license)
 
 Features
 --------
 *   Cascade soft delete for chosen relations
 *   Cascade restore for chosen relations (only models with deleted_at >= restoredInstance->deleted_at value will be restored)
-*   Ability to follow custom query
-*   By default a cascade action will be added to default queue (upcomming version will add options to disable this feature or choose different queue)
+*   Ability to follow [custom query](#custom-queries)
+*   By default all cascade action will be added to default queue, you can change this behaviour by [publishing package's config file](#publish-config).
 
 Notes
 -----
@@ -41,7 +42,16 @@ To install the package, in terminal:
 composer require razisayyed/laravel-cascaded-soft-deletes
 ```
 
+### publish config
+If you need to change config values for sync/async behaviour you may issue:
+
+```
+php artisan vendor:publish --provider="RaziAlsayyed\LaravelCascadedSoftDeletes\Providers\CascadedSoftDeletesProvider" --tag="config"
+
+```
+
 ### Setting up
+
 to setup CascadedSoftDeletes you need to use the trait at the parent model and add a protected function that returns a list of the relations needed to be cascaded
 
 ```php
@@ -57,14 +67,11 @@ class Page extends Model {
     use SoftDeletes;
     use CascadedSoftDeletes;
 
+    protected $cascadedSoftDeletes = [ 'blocks' ];
+
     public function blocks()
     {
         return $this->hasMany(Block::class);
-    }
-
-    protected function getCascadedSoftDeletes()
-    {
-        return ['blocks'];
     }
 
 }
@@ -74,16 +81,55 @@ class Page extends Model {
 
 use \Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\SoftDeletes;
-use \RaziAlsayyed\LaravelCascadedSoftDeletes\Traits\CascadedSoftDeletes;
 
 class Block extends Model {
 
     use SoftDeletes;
-    use CascadedSoftDeletes;
 
     public function page() 
     {
         return $this->belongsTo(Page::class);
+    }
+
+}
+```
+
+### custom queries
+
+You can also define a custom query to cascade soft deletes and restores through.
+
+the following example describes a scenario where `Folder` is a model that uses `NodeTrait` from [laravel-nestedset](https://github.com/lazychaser/laravel-nestedset) class and each folder has many albums. `getCascadedSoftDeletes()` in the example will cascade soft deletes and restores to albums related to the folder and all its decendants.
+
+```php
+...
+<?php
+
+use \Illuminate\Database\Eloquent\Model;
+use \Illuminate\Database\Eloquent\SoftDeletes;
+use RaziAlsayyed\LaravelCascadedSoftDeletes\Traits\CascadedSoftDeletes;
+
+class Folder extends Model {
+
+    use SoftDeletes;
+    use NodeTrait;
+    use CascadedSoftDeletes;
+
+    public function albums()
+    {
+        return $this->hasMany(Album::class);
+    }
+
+    protected function getCascadedSoftDeletes()
+    {
+        return [
+            'albums' => function() {
+                return Album::whereHas('folder', function($q) {
+                    $q->withTrashed()
+                        ->where('_lft', '>=', $this->getLft())
+                        ->where('_rgt', '<=', $this->getRgt());
+                });  
+            }
+        ];
     }
 
 }
@@ -95,10 +141,9 @@ class Block extends Model {
 -   Parent class must use CascadedSoftDeletes trait.
 -   Parent class must implement **getCascadedSoftDeletes** method which must return a list of cascaded HasMany relations.
 
-__WIP__
-
 License
 =======
+
 MIT License
 
 Copyright (c) 2022 Razi Alsayyed
