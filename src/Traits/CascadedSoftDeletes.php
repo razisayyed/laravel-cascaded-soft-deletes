@@ -2,6 +2,8 @@
 
 namespace RaziAlsayyed\LaravelCascadedSoftDeletes\Traits;
 
+use Illuminate\Support\Str;
+
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\LogicException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\RuntimeException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Jobs\CascadeSoftDeletes;
@@ -45,10 +47,16 @@ trait CascadedSoftDeletes
         if($this->isHardDeleting())
             return;
 
-        if(config('cascaded-soft-deletes.queue_cascades_by_default') === true)
+        if(config('cascaded-soft-deletes.queue_cascades_by_default') === true) {
             CascadeSoftDeletes::dispatch($this, 'delete', null)->onQueue(config('cascaded-soft-deletes.queue_name'));
-        else
-            CascadeSoftDeletes::dispatchSync($this, 'delete', null);
+        }
+        else {
+            // @codeCoverageIgnoreStart
+            Str::startsWith(app()->version(), "7") ? 
+                CascadeSoftDeletes::dispatchNow($this, 'delete', null) : 
+                CascadeSoftDeletes::dispatchSync($this, 'delete', null); 
+            // @codeCoverageIgnoreEnd
+        }
 
     }
 
@@ -57,10 +65,16 @@ trait CascadedSoftDeletes
      */
     protected function restoreCascadedSoftDeleted() : void
     {
-        if(config('cascaded-soft-deletes.queue_cascades_by_default') === true)
+        if(config('cascaded-soft-deletes.queue_cascades_by_default') === true) {
             CascadeSoftDeletes::dispatch($this, 'restore', static::$instanceDeletedAt)->onQueue(config('cascaded-soft-deletes.queue_name'));
-        else
-            CascadeSoftDeletes::dispatchSync($this, 'restore', static::$instanceDeletedAt);
+        }
+        else {
+            // @codeCoverageIgnoreStart
+            Str::startsWith(app()->version(), "7") ? 
+                CascadeSoftDeletes::dispatchNow($this, 'restore', static::$instanceDeletedAt) :
+                CascadeSoftDeletes::dispatchSync($this, 'restore', static::$instanceDeletedAt);
+            // @codeCoverageIgnoreEnd
+        }
         // CascadeSoftDeletes::dispatch($this, 'restore', static::$instanceDeletedAt);
     }
 
