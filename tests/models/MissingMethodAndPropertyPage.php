@@ -6,7 +6,7 @@ use \Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\SoftDeletes;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Traits\CascadedSoftDeletes;
 
-class MissingMethodPage extends Model {
+class MissingMethodAndPropertyPage extends Model {
 
     use SoftDeletes;
     use CascadedSoftDeletes;

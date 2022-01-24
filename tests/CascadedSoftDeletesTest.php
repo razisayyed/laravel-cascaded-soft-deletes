@@ -2,36 +2,35 @@
 
 namespace RaziAlsayyed\LaravelCascadedSoftDeletes\Tests;
 
-use Illuminate\Database\QueryException;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\LogicException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\RuntimeException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\Block;
-use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\MissingMethodPage;
+use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\MissingMethodAndPropertyPage;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\MissingSoftDeletesPage;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\Page;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\PageCallbackCascade;
+use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\PageMethod;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\Plugin;
 
 use function PHPUnit\Framework\assertEquals;
+use function PHPUnit\Framework\assertNull;
 
 /**
  * @covers \RaziAlsayyed\LaravelCascadedSoftDeletes\Traits\CascadedSoftDeletes
  * @covers \RaziAlsayyed\LaravelCascadedSoftDeletes\Jobs\CascadeSoftDeletes
+ * @covers \RaziAlsayyed\LaravelCascadedSoftDeletes\Providers\CascadedSoftDeletesProvider
  */
 class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
 {
 
-    // use RefreshDatabase;
+    use RefreshDatabase;
 
     public function setUp() : void
     {
         parent::setUp();
-
-        // Schema::dropIfExists('plugins');
-        // Schema::dropIfExists('blocks');
-        // Schema::dropIfExists('pages');
 
         Schema::create('pages', function($table) {
             $table->id();
@@ -77,11 +76,21 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
 
     public function tearDown() : void
     {
-        Schema::drop('plugins');
-        Schema::drop('blocks');
-        Schema::drop('pages');
+        // Schema::drop('plugins');
+        // Schema::drop('blocks');
+        // Schema::drop('pages');
 
         parent::tearDown();
+    }
+
+    /***
+     * When testing inside of a Laravel installation, this is not needed
+     */
+    protected function getPackageProviders($app)
+    {
+        return [
+            'RaziAlsayyed\LaravelCascadedSoftDeletes\Providers\CascadedSoftDeletesProvider'
+        ];
     }
 
     /**
@@ -115,24 +124,30 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
         return 'Asia/Hebron';
     }
 
-    public function testDelete()
+    /**
+     * @dataProvider pageModelProvider
+     */
+    public function testDelete($pageClass)
     {
 
-        $page = Page::whereName('page 1')->first();
+        $page = (new $pageClass)->whereName('page 1')->first();
 
-        $originalBlocksCount = $this->pageBlocksCount('page 1');
+        $originalBlocksCount = $this->pageBlocksCount($pageClass, 'page 1');
 
         $page->delete();
 
-        assertEquals($this->pageBlocksCount('page 1'), 0);
-        assertEquals($this->pageBlocksCount('page 1', true), $originalBlocksCount);
+        assertEquals($this->pageBlocksCount($pageClass, 'page 1'), 0);
+        assertEquals($this->pageBlocksCount($pageClass, 'page 1', true), $originalBlocksCount);
 
     }
 
-    public function testTwoLevelDelete()
+    /**
+     * @dataProvider pageModelProvider
+     */
+    public function testTwoLevelDelete($pageClass)
     {
 
-        $page = Page::whereName('page 1')->first();
+        $page = (new $pageClass)->whereName('page 1')->first();
 
         $originalPluginsCount = $this->blockPluginsCount('block 1 - page 1');
 
@@ -142,23 +157,36 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
         assertEquals($this->blockPluginsCount('block 1 - page 1', true), $originalPluginsCount);
     }
 
-    public function testForceDelete()
+    /**
+     * @dataProvider pageModelProvider
+     */
+    public function testForceDelete($pageClass)
     {
-        $this->findPage('page 1')->forceDelete();
 
-        assertEquals($this->findPage('page 1', true), null);
+        (new $pageClass)->whereName('page 1')->first()->forceDelete();
+
+        assertNull(
+            (new $pageClass)->whereName('page 1')->withTrashed()->first()
+        );
 
     }
 
-    public function testRestore()
+    /**
+     * @dataProvider combinedProvider
+     */
+    public function testRestore($pageClass, $sync)
     {
-        $page = Page::whereName('page 1')->first();
+
+        config()->set('cascaded-soft-deletes.queue_cascades_by_default', !$sync);
+
+        $page = (new $pageClass)->whereName('page 1')->first();
+        // $page = Page::whereName('page 1')->first();
 
         // this block must not be restored with page
         $block = Block::whereName('block 2 - page 1')->first();
         $block->delete();
 
-        $originalBlocksCount = $this->pageBlocksCount('page 1');
+        $originalBlocksCount = $this->pageBlocksCount($pageClass, 'page 1');
         assertEquals($originalBlocksCount, 1, 'wrong blocks count after deleting one block!');
 
         // this plugin must not be restored with page
@@ -168,22 +196,21 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
 
         $page->delete();
 
-        assertEquals($this->pageBlocksCount('page 1'), 0, 'undeleted block(s) found after deleting page!');
+        assertEquals($this->pageBlocksCount($pageClass, 'page 1'), 0, 'undeleted block(s) found after deleting page!');
 
         $page->restore();
 
-        assertEquals($this->pageBlocksCount('page 1'), 1, 'wrong blocks count after restoring page!');
+        assertEquals($this->pageBlocksCount($pageClass, 'page 1'), 1, 'wrong blocks count after restoring page!');
         assertEquals($this->blockPluginsCount('block 1 - page 1'), 2, 'wrong plugins coung after restoring page!');
 
     }
 
-    public function testMissingMethod()
+    public function testMissingMethodAndProperty()
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('getCascadedSoftDeletes function not found!');
+        $this->expectExceptionMessage('neither getCascadedSoftDeletes function or cascaded_soft_deletes property exists!');
 
-        MissingMethodPage::whereName('page 1')->first()->delete();
-
+        MissingMethodAndPropertyPage::whereName('page 1')->first()->delete();
     }
 
     public function testMissingSoftDeletes()
@@ -201,43 +228,68 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
 
         $page->delete();
 
-        assertEquals($this->pageBlocksCount('page 1'), 2);
+        assertEquals($this->pageBlocksCount(PageCallbackCascade::class, 'page 1'), 2);
         assertEquals($this->blockPluginsCount('block 1 - page 1'), 3);
 
-        assertEquals($this->pageBlocksCount('page 2'), 0);
+        assertEquals($this->pageBlocksCount(PageCallbackCascade::class, 'page 2'), 0);
         assertEquals($this->blockPluginsCount('block 1 - page 2'), 0);
 
 
     }
 
-    public function testCallbackCascadeRestore()
+    /**
+     * @dataProvider dispatchProvider
+     */
+    public function testCallbackCascadeRestore($sync)
     {
-        $q = new PageCallbackCascade;
-        $page = $q->newQuery()->whereName('page 1')->first();
+        config()->set('cascaded-soft-deletes.queue_cascades_by_default', !$sync);
+
+        $page = PageCallbackCascade::whereName('page 1')->first();
 
         $page->delete();
 
         $page->restore();
 
-        assertEquals($this->pageBlocksCount('page 2'), 2);
+        assertEquals($this->pageBlocksCount(PageCallbackCascade::class, 'page 2'), 2);
         assertEquals($this->blockPluginsCount('block 1 - page 2'), 1);
 
 
+    }
+
+    public function dispatchProvider() {
+        return [
+            'async' => [ true ],
+            'sync' => [ false ],
+        ];
+    }
+
+    public function pageModelProvider() {
+        return [
+            'page with model' => [ PageMethod::class ],
+            'page with property' => [ Page::class ]
+        ];
+    }
+
+    public function combinedProvider() {
+        return [
+            'page with model sync'     => [PageMethod::class, true ],
+            'page with model async'    => [PageMethod::class, false ],
+            'page with property sync'  => [Page::class, true ],
+            'page with property async' => [Page::class, false ],
+        ];
     }
 
 
     /**
      * @param $name
      *
-     * @return \Page
+     * @return Model
      */
-    public function findPage($name, $withTrashed = false) : ?Page
+    public function findPage($name, $withTrashed = false) : ?Model
     {
-        $q = new Page;
-
-        $q = $withTrashed ? $q->withTrashed() : $q->newQuery();
-
-        return $q->whereName($name)->first();
+        return $withTrashed ? 
+            Page::withTrashed()->whereName($name)->first() :
+            Page::whereName($name)->first();
     }
 
     /**
@@ -247,11 +299,9 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
      */
     public function findBlock($name, $withTrashed = false) : ?Block
     {
-        $q = new Block;
-
-        $q = $withTrashed ? $q->withTrashed() : $q->newQuery();
-
-        return $q->whereName($name)->first();
+        return $withTrashed ? 
+            Block::withTrashed()->whereName($name)->first() :
+            Block::whereName($name)->first();
     }
     /**
      * @param $name
@@ -260,11 +310,9 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
      */
     public function findPlugin($name, $withTrashed = false) : ?Plugin
     {
-        $q = new Plugin;
-
-        $q = $withTrashed ? $q->withTrashed() : $q->newQuery();
-
-        return $q->whereName($name)->first();
+        return $withTrashed ? 
+            Plugin::withTrashed()->whereName($name)->first() :
+            Plugin::whereName($name)->first();
     }
 
     /**
@@ -272,13 +320,13 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
      *
      * @return \Block
      */
-    public function pageBlocksCount($pageName, $trashed = false) : int
+    public function pageBlocksCount($pageClass, $pageName, $trashed = false) : int
     {
         if($trashed)
         {
-            return $this->findPage($pageName, true)->blocks()->onlyTrashed()->count();
+            return (new $pageClass)->withTrashed()->whereName($pageName)->first()->blocks()->onlyTrashed()->count();
         }
-        return $this->findPage($pageName, true)->blocks()->count();
+        return (new $pageClass)->withTrashed()->whereName($pageName)->first()->blocks()->count();
     }
 
     /**

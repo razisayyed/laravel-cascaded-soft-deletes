@@ -6,7 +6,7 @@ use \Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\SoftDeletes;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Traits\CascadedSoftDeletes;
 
-class Page extends Model {
+class PageMethod extends Model {
 
     use SoftDeletes;
     use CascadedSoftDeletes;
@@ -18,12 +18,16 @@ class Page extends Model {
 
     public $timestamps = false;
 
-    protected $cascadedSoftDeletes = [ 'blocks' ];
-
     public function blocks()
     {
         return $this->hasMany(Block::class, 'page_id', 'id');
     }
+
+    protected function getCascadedSoftDeletes()
+    {
+        return ['blocks'];
+    }
+
 
 }
 
