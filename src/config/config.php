@@ -2,7 +2,7 @@
 
 return [
 
-    /**
+    /*
      * The queue will be used to run cascade deletes/restores.
      * Leave empty to use the default queue.
      */

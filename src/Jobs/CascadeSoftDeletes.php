@@ -3,7 +3,6 @@
 namespace RaziAlsayyed\LaravelCascadedSoftDeletes\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -50,5 +49,4 @@ class CascadeSoftDeletes implements ShouldQueue
     {
         $this->model->cascadeSoftDeletes($this->event, $this->instanceDeletedAt);
     }
-
 }

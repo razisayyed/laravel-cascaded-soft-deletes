@@ -16,7 +16,8 @@
     "require-dev": {
         "orchestra/testbench": "^5.0|^6.0",
         "phpunit/phpunit": "^8.5.10|^9.3.3",
-        "nunomaduro/collision": "^4.3|^5.10"
+        "nunomaduro/collision": "^4.3|^5.10",
+        "friendsofphp/php-cs-fixer": "^3.5"
     },
     "autoload": {
         "psr-4": {
@@ -31,7 +32,13 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "scripts": {
-        "test": "vendor/bin/phpunit"
+        "test": "vendor/bin/phpunit",
+	"sniff": [
+            "./vendor/bin/php-cs-fixer fix -vvv --dry-run --show-progress=dots"
+        ],
+        "lint": [       
+    	    "./vendor/bin/php-cs-fixer fix -vvv --show-progress=dots"
+        ]
     },
     "extra": {
         "laravel": {

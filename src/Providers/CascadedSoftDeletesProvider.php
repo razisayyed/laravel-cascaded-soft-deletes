@@ -13,7 +13,7 @@ class CascadedSoftDeletesProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'cascaded-soft-deletes');
+        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'cascaded-soft-deletes');
     }
 
     /**
@@ -25,7 +25,7 @@ class CascadedSoftDeletesProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/config.php' => config_path('cascaded-soft-deletes.php'),
+                __DIR__ . '/../config/config.php' => config_path('cascaded-soft-deletes.php'),
             ], 'config');
         }
     }

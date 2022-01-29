@@ -3,14 +3,12 @@
 namespace RaziAlsayyed\LaravelCascadedSoftDeletes\Traits;
 
 use Illuminate\Support\Str;
-
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\LogicException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\RuntimeException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Jobs\CascadeSoftDeletes;
 
 trait CascadedSoftDeletes
 {
-
     /**
      * Keeps track of Instance deleted_at time.
      *
@@ -23,7 +21,6 @@ trait CascadedSoftDeletes
      */
     protected static function bootCascadedSoftDeletes()
     {
-
         static::deleted(function ($model) {
             $model->deleteCascadedSoftDeletes();
         });
@@ -44,20 +41,19 @@ trait CascadedSoftDeletes
      */
     protected function deleteCascadedSoftDeletes() : void
     {
-        if($this->isHardDeleting())
+        if ($this->isHardDeleting()) {
             return;
-
-        if(config('cascaded-soft-deletes.queue_cascades_by_default') === true) {
-            CascadeSoftDeletes::dispatch($this, 'delete', null)->onQueue(config('cascaded-soft-deletes.queue_name'));
         }
-        else {
+
+        if (config('cascaded-soft-deletes.queue_cascades_by_default') === true) {
+            CascadeSoftDeletes::dispatch($this, 'delete', null)->onQueue(config('cascaded-soft-deletes.queue_name'));
+        } else {
             // @codeCoverageIgnoreStart
-            Str::startsWith(app()->version(), "7") ? 
-                CascadeSoftDeletes::dispatchNow($this, 'delete', null) : 
-                CascadeSoftDeletes::dispatchSync($this, 'delete', null); 
+            Str::startsWith(app()->version(), '7') ?
+                CascadeSoftDeletes::dispatchNow($this, 'delete', null) :
+                CascadeSoftDeletes::dispatchSync($this, 'delete', null);
             // @codeCoverageIgnoreEnd
         }
-
     }
 
     /**
@@ -65,12 +61,11 @@ trait CascadedSoftDeletes
      */
     protected function restoreCascadedSoftDeleted() : void
     {
-        if(config('cascaded-soft-deletes.queue_cascades_by_default') === true) {
+        if (config('cascaded-soft-deletes.queue_cascades_by_default') === true) {
             CascadeSoftDeletes::dispatch($this, 'restore', static::$instanceDeletedAt)->onQueue(config('cascaded-soft-deletes.queue_name'));
-        }
-        else {
+        } else {
             // @codeCoverageIgnoreStart
-            Str::startsWith(app()->version(), "7") ? 
+            Str::startsWith(app()->version(), '7') ?
                 CascadeSoftDeletes::dispatchNow($this, 'restore', static::$instanceDeletedAt) :
                 CascadeSoftDeletes::dispatchSync($this, 'restore', static::$instanceDeletedAt);
             // @codeCoverageIgnoreEnd
@@ -79,43 +74,46 @@ trait CascadedSoftDeletes
     }
 
     /**
-     * Delete/Restore Cascaded Relationships
+     * Delete/Restore Cascaded Relationships.
      *
      * @param $action
      */
     public function cascadeSoftDeletes(string $action, ?\Carbon\Carbon $instanceDeletedAt = null) : void
     {
-        if(method_exists($this, 'getCascadedSoftDeletes')) {
+        if (method_exists($this, 'getCascadedSoftDeletes')) {
             $relations = collect($this->getCascadedSoftDeletes());
-        } else if(property_exists($this, 'cascadedSoftDeletes')) {
+        } elseif (property_exists($this, 'cascadedSoftDeletes')) {
             $relations = collect($this->cascadedSoftDeletes);
         } else {
             throw new RuntimeException('neither getCascadedSoftDeletes function or cascaded_soft_deletes property exists!');
         }
 
-        $relations->each(function($item, $key) use ($action, $instanceDeletedAt) {
-
+        $relations->each(function ($item, $key) use ($action, $instanceDeletedAt) {
             $relation = $key;
-            if(is_numeric($key))
+            if (is_numeric($key)) {
                 $relation = $item;
+            }
 
-            if(!is_callable($item) && !$this->relationUsesSoftDelete($relation))
-                throw new LogicException('relationship '.$relation.' does not use SoftDeletes trait.');
+            if (!is_callable($item) && !$this->relationUsesSoftDelete($relation)) {
+                throw new LogicException('relationship ' . $relation . ' does not use SoftDeletes trait.');
+            }
 
-            if(is_callable($item))
+            if (is_callable($item)) {
                 $query = $item();
-            else
+            } else {
                 $query = $this->{$relation}();
+            }
 
-            if($action == 'delete')
+            if ($action == 'delete') {
                 $query->get()->each->delete();
-            else
+            } else {
                 $query
                     ->onlyTrashed()
                     ->where($this->getDeletedAtColumn(), '>=', $instanceDeletedAt->format('Y-m-d H:i:s.u'))
                     ->get()
                     ->each
                     ->restore();
+            }
 
             // else {
             //     $query = $query
@@ -125,9 +123,7 @@ trait CascadedSoftDeletes
             //     dd($query->toSql(), $query->getBindings(), $query->pluck('deleted_at'));
 
             // }
-
         });
-
     }
 
     /**
@@ -137,7 +133,7 @@ trait CascadedSoftDeletes
      */
     protected function isHardDeleting() : bool
     {
-        return ! $this->instanceUsesSoftDelete() || $this->forceDeleting;
+        return !$this->instanceUsesSoftDelete() || $this->forceDeleting;
     }
 
     /**
@@ -167,13 +163,15 @@ trait CascadedSoftDeletes
     {
         static $softDeletes;
 
-        if(is_null($softDeletes))
+        if (is_null($softDeletes)) {
             $softDeletes = collect([]);
+        }
 
-        return $softDeletes->get($relation, function() use($relation, $softDeletes) {
+        return $softDeletes->get($relation, function () use ($relation, $softDeletes) {
             $instance = new static;
             $cls = $instance->{$relation}()->getRelated();
             $relationInstance = new $cls;
+
             return $softDeletes->put($relation, method_exists($relationInstance, 'bootSoftDeletes'))->get($relation);
         });
     }
