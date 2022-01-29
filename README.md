@@ -3,6 +3,7 @@
 [![Total Downloads](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/downloads.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
 [![Latest Stable Version](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/v/stable.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
 [![Latest Unstable Version](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/v/unstable.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/razisayyed/laravel-cascaded-soft-deletes/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/razisayyed/laravel-cascaded-soft-deletes/?branch=main)
 [![License](https://poser.pugx.org/razisayyed/laravel-cascaded-soft-deletes/license.svg)](https://packagist.org/packages/razisayyed/laravel-cascaded-soft-deletes)
 
 This is a Laravel 8 package for cascding SoftDeletes delete/restore actions.
