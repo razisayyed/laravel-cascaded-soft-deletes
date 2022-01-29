@@ -31,7 +31,7 @@ Features
 Notes
 -----
 *   The idea of this package has been extracted from the fabulous package [laravel-nestedset](https://github.com/lazychaser/laravel-nestedset)
-*   Because the package relies on deleted_at column to make the comparision when it cascades restore action, it is recommended to use ```$table->softDeletes('deleted_at', 6);``` in the migration files. Otherwise, you may restore a related model that has been deleted before the instance in a fraction of the second.
+*   Because the package relies on deleted_at column to make the comparision when it cascades restore action, it is recommended to use ```$table->softDeletes('deleted_at', 6);``` in the migration files. Otherwise, you may restore a related model that has been deleted before the instance in a fraction of a second.
 
 
 Installation
@@ -52,7 +52,9 @@ php artisan vendor:publish --provider="RaziAlsayyed\LaravelCascadedSoftDeletes\P
 
 ### Setting up
 
-to setup CascadedSoftDeletes you need to use the trait at the parent model and add a protected function that returns a list of the relations needed to be cascaded
+to setup CascadedSoftDeletes you need to use the trait at the parent model and define `$cascadedSoftDeletes` property or `getCascadedSoftDeletes()` method.
+
+### Simple example with $cascadedSoftDeletes property
 
 ```php
 ...
@@ -94,7 +96,7 @@ class Block extends Model {
 }
 ```
 
-### custom queries
+### Advanced example with getCascadedSoftDeletes and custom queries
 
 You can also define a custom query to cascade soft deletes and restores through.
 
@@ -139,7 +141,7 @@ class Folder extends Model {
 
 -   Both classes must use SoftDeletes trait.
 -   Parent class must use CascadedSoftDeletes trait.
--   Parent class must implement **getCascadedSoftDeletes** method which must return a list of cascaded HasMany relations.
+-   Parent class must define **$cascadedSoftDeletes** or implement **getCascadedSoftDeletes** method which must return a list of cascaded HasMany relations and/or custom Queries.
 
 License
 =======
