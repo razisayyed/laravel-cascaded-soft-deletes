@@ -15,8 +15,8 @@
     },
     "require-dev": {
         "orchestra/testbench": "^5.0|^6.0|^7.0|^8.0",
-        "phpunit/phpunit": "^8.5.10|^9.3.3",
-        "nunomaduro/collision": "^4.3|^5.10|^6.1",
+        "phpunit/phpunit": "^8.5.10|^9.3.3|^9.6",
+        "nunomaduro/collision": "^4.3|^5.10|^6.1|^7.0",
         "friendsofphp/php-cs-fixer": "^3.4"
     },
     "autoload": {
