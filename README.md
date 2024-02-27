@@ -11,6 +11,7 @@ This is a Laravel 8 package for cascding SoftDeletes delete/restore actions.
 *   **Laravel 7.0** is supported since v0.1.0
 *   **Laravel 8.0** is supported since v0.1.0
 *   **Laravel 9.0** is supported since v1.0.2
+*   **Laravel 10.0** is supported since v1.0.3 (Thanks to @mojowill)
 
 Although this project is completely free for use, I appreciate any support!
 
