@@ -28,6 +28,7 @@ jobs:
           - { test: 7, php: ^8.1, laravel: ^8.0, testbench: ^6.0, collision: ^5.10, phpunit: 9.5.10 }
           - { test: 8, php: ^8.0, laravel: ^9.0, testbench: ^7.0, collision: ^6.1, phpunit: 9.5.10 }
           - { test: 9, php: ^8.1, laravel: ^9.0, testbench: ^7.0, collision: ^6.1, phpunit: 9.5.10 }
+          - { test: 10, php: ^8.1, laravel: ^10.0, testbench: ^7.0, collision: ^6.1, phpunit: 9.5.10}
 
 
     steps:
@@ -83,7 +84,7 @@ jobs:
       #   TEST_NAME: Scarlett
 
     - uses: codecov/codecov-action@v2
-      if: matrix.php == '^8.1' && matrix.laravel == '^9.0'
+      if: matrix.php == '^8.1' && matrix.laravel == '^10.0'
       with:
         files: ./build/logs/clover.xml
         fail_ci_if_error: true
