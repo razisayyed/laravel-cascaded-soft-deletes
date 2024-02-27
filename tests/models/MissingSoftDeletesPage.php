@@ -2,19 +2,20 @@
 
 namespace RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models;
 
-use \Illuminate\Database\Eloquent\Model;
-use \Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Traits\CascadedSoftDeletes;
 
-class MissingSoftDeletesPage extends Model {
-
-    use SoftDeletes;
+class MissingSoftDeletesPage extends Model
+{
     use CascadedSoftDeletes;
+    use SoftDeletes;
 
     protected $table = 'pages';
+
     protected $dateFormat = 'Y-m-d H:i:s.u';
 
-    protected $fillable = array('name');
+    protected $fillable = ['name'];
 
     public $timestamps = false;
 
@@ -27,8 +28,4 @@ class MissingSoftDeletesPage extends Model {
     {
         return ['blocks'];
     }
-
-
 }
-
-

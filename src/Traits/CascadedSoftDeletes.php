@@ -39,7 +39,7 @@ trait CascadedSoftDeletes
     /**
      * Delete the cascaded relations.
      */
-    protected function deleteCascadedSoftDeletes() : void
+    protected function deleteCascadedSoftDeletes(): void
     {
         if ($this->isHardDeleting()) {
             return;
@@ -48,37 +48,26 @@ trait CascadedSoftDeletes
         if (config('cascaded-soft-deletes.queue_cascades_by_default') === true) {
             CascadeSoftDeletes::dispatch($this, 'delete', null)->onQueue(config('cascaded-soft-deletes.queue_name'));
         } else {
-            // @codeCoverageIgnoreStart
-            Str::startsWith(app()->version(), '7') ?
-                CascadeSoftDeletes::dispatchNow($this, 'delete', null) :
-                CascadeSoftDeletes::dispatchSync($this, 'delete', null);
-            // @codeCoverageIgnoreEnd
+            CascadeSoftDeletes::dispatchSync($this, 'delete', null);
         }
     }
 
     /**
      * Restore the cascaded relations.
      */
-    protected function restoreCascadedSoftDeleted() : void
+    protected function restoreCascadedSoftDeleted(): void
     {
         if (config('cascaded-soft-deletes.queue_cascades_by_default') === true) {
             CascadeSoftDeletes::dispatch($this, 'restore', static::$instanceDeletedAt)->onQueue(config('cascaded-soft-deletes.queue_name'));
         } else {
-            // @codeCoverageIgnoreStart
-            Str::startsWith(app()->version(), '7') ?
-                CascadeSoftDeletes::dispatchNow($this, 'restore', static::$instanceDeletedAt) :
-                CascadeSoftDeletes::dispatchSync($this, 'restore', static::$instanceDeletedAt);
-            // @codeCoverageIgnoreEnd
+            CascadeSoftDeletes::dispatchSync($this, 'restore', static::$instanceDeletedAt);
         }
-        // CascadeSoftDeletes::dispatch($this, 'restore', static::$instanceDeletedAt);
     }
 
     /**
      * Delete/Restore Cascaded Relationships.
-     *
-     * @param $action
      */
-    public function cascadeSoftDeletes(string $action, ?\Carbon\Carbon $instanceDeletedAt = null) : void
+    public function cascadeSoftDeletes(string $action, ?\Carbon\Carbon $instanceDeletedAt = null): void
     {
         if (method_exists($this, 'getCascadedSoftDeletes')) {
             $relations = collect($this->getCascadedSoftDeletes());
@@ -94,8 +83,8 @@ trait CascadedSoftDeletes
                 $relation = $item;
             }
 
-            if (!is_callable($item) && !$this->relationUsesSoftDelete($relation)) {
-                throw new LogicException('relationship ' . $relation . ' does not use SoftDeletes trait.');
+            if (! is_callable($item) && ! $this->relationUsesSoftDelete($relation)) {
+                throw new LogicException('relationship '.$relation.' does not use SoftDeletes trait.');
             }
 
             if (is_callable($item)) {
@@ -128,25 +117,21 @@ trait CascadedSoftDeletes
 
     /**
      * Get whether user is intended to delete the model from database entirely.
-     *
-     * @return bool
      */
-    protected function isHardDeleting() : bool
+    protected function isHardDeleting(): bool
     {
-        return !$this->instanceUsesSoftDelete() || $this->forceDeleting;
+        return ! $this->instanceUsesSoftDelete() || $this->forceDeleting;
     }
 
     /**
      * Check if the instance uses SoftDeletes trait.
-     *
-     * @return bool
      */
-    protected static function instanceUsesSoftDelete() : bool
+    protected static function instanceUsesSoftDelete(): bool
     {
         static $softDelete;
 
         if (is_null($softDelete)) {
-            $instance = new static;
+            $instance = new static();
 
             return $softDelete = method_exists($instance, 'bootSoftDeletes');
         }
@@ -156,10 +141,8 @@ trait CascadedSoftDeletes
 
     /**
      * Check if the relation uses SoftDeletes trait.
-     *
-     * @return bool
      */
-    public static function relationUsesSoftDelete($relation) : bool
+    public static function relationUsesSoftDelete($relation): bool
     {
         static $softDeletes;
 
@@ -168,9 +151,9 @@ trait CascadedSoftDeletes
         }
 
         return $softDeletes->get($relation, function () use ($relation, $softDeletes) {
-            $instance = new static;
+            $instance = new static();
             $cls = $instance->{$relation}()->getRelated();
-            $relationInstance = new $cls;
+            $relationInstance = new $cls();
 
             return $softDeletes->put($relation, method_exists($relationInstance, 'bootSoftDeletes'))->get($relation);
         });

@@ -7,8 +7,6 @@ namespace RaziAlsayyed\LaravelCascadedSoftDeletes\Tests;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
-use function PHPUnit\Framework\assertEquals;
-use function PHPUnit\Framework\assertNull;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\LogicException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\RuntimeException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\Block;
@@ -19,6 +17,9 @@ use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\PageCallbackCascade;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\PageMethod;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Tests\Models\Plugin;
 
+use function PHPUnit\Framework\assertEquals;
+use function PHPUnit\Framework\assertNull;
+
 /**
  * @covers \RaziAlsayyed\LaravelCascadedSoftDeletes\Traits\CascadedSoftDeletes
  * @covers \RaziAlsayyed\LaravelCascadedSoftDeletes\Jobs\CascadeSoftDeletes
@@ -28,7 +29,7 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
 {
     use RefreshDatabase;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -73,7 +74,7 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
         ]);
     }
 
-    public function tearDown() : void
+    public function tearDown(): void
     {
         // Schema::drop('plugins');
         // Schema::drop('blocks');
@@ -103,7 +104,7 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testbench');
         $app['config']->set('database.connections.testbench', [
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
         ]);
     }
@@ -170,7 +171,7 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
      */
     public function testRestore($pageClass, $sync)
     {
-        config()->set('cascaded-soft-deletes.queue_cascades_by_default', !$sync);
+        config()->set('cascaded-soft-deletes.queue_cascades_by_default', ! $sync);
 
         $page = (new $pageClass)->whereName('page 1')->first();
         // $page = Page::whereName('page 1')->first();
@@ -231,7 +232,7 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
      */
     public function testCallbackCascadeRestore($sync)
     {
-        config()->set('cascaded-soft-deletes.queue_cascades_by_default', !$sync);
+        config()->set('cascaded-soft-deletes.queue_cascades_by_default', ! $sync);
 
         $page = PageCallbackCascade::whereName('page 1')->first();
 
@@ -262,19 +263,14 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
     public static function combinedProvider()
     {
         return [
-            'page with model sync'     => [PageMethod::class, true],
-            'page with model async'    => [PageMethod::class, false],
-            'page with property sync'  => [Page::class, true],
+            'page with model sync' => [PageMethod::class, true],
+            'page with model async' => [PageMethod::class, false],
+            'page with property sync' => [Page::class, true],
             'page with property async' => [Page::class, false],
         ];
     }
 
-    /**
-     * @param $name
-     *
-     * @return Model
-     */
-    public function findPage($name, $withTrashed = false) : ?Model
+    public function findPage($name, $withTrashed = false): ?Model
     {
         return $withTrashed ?
             Page::withTrashed()->whereName($name)->first() :
@@ -282,11 +278,9 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
     }
 
     /**
-     * @param $name
-     *
      * @return \Block
      */
-    public function findBlock($name, $withTrashed = false) : ?Block
+    public function findBlock($name, $withTrashed = false): ?Block
     {
         return $withTrashed ?
             Block::withTrashed()->whereName($name)->first() :
@@ -294,11 +288,9 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
     }
 
     /**
-     * @param $name
-     *
      * @return \Plugin
      */
-    public function findPlugin($name, $withTrashed = false) : ?Plugin
+    public function findPlugin($name, $withTrashed = false): ?Plugin
     {
         return $withTrashed ?
             Plugin::withTrashed()->whereName($name)->first() :
@@ -306,11 +298,10 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
     }
 
     /**
-     * @param $name
-     *
+     * @param  $name
      * @return \Block
      */
-    public function pageBlocksCount($pageClass, $pageName, $trashed = false) : int
+    public function pageBlocksCount($pageClass, $pageName, $trashed = false): int
     {
         if ($trashed) {
             return (new $pageClass)->withTrashed()->whereName($pageName)->first()->blocks()->onlyTrashed()->count();
@@ -320,11 +311,10 @@ class CascadedSoftDeletesTest extends \Orchestra\Testbench\TestCase
     }
 
     /**
-     * @param $name
-     *
+     * @param  $name
      * @return \Block
      */
-    public function blockPluginsCount($blockName, $trashed = false) : int
+    public function blockPluginsCount($blockName, $trashed = false): int
     {
         if ($trashed) {
             return $this->findBlock($blockName, true)->plugins()->onlyTrashed()->count();

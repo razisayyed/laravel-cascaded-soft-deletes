@@ -17,20 +17,12 @@ jobs:
       fail-fast: true
       matrix:
         dependency_version: [prefer-stable]
-        test: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        test: [1, 2, 3, 4]
         include:
-          - { test: 1, php: ^7.3, laravel: ^7.0, testbench: ^5.0, collision: ^4.3, phpunit: 9.3.3 }
-          - { test: 2, php: ^7.4, laravel: ^7.0, testbench: ^5.0, collision: ^4.3, phpunit: 9.3.3 }
-          - { test: 3, php: ^8.0, laravel: ^7.0, testbench: ^5.0, collision: ^4.3, phpunit: 9.3.3 }
-          - { test: 4, php: ^7.3, laravel: ^8.0, testbench: ^6.0, collision: ^5.10, phpunit: 9.5.10 }
-          - { test: 5, php: ^7.4, laravel: ^8.0, testbench: ^6.0, collision: ^5.10, phpunit: 9.5.10 }
-          - { test: 6, php: ^8.0, laravel: ^8.0, testbench: ^6.0, collision: ^5.10, phpunit: 9.5.10 }
-          - { test: 7, php: ^8.1, laravel: ^8.0, testbench: ^6.0, collision: ^5.10, phpunit: 9.5.10 }
-          - { test: 8, php: ^8.0, laravel: ^9.0, testbench: ^7.0, collision: ^6.1, phpunit: 9.5.10 }
-          - { test: 9, php: ^8.1, laravel: ^9.0, testbench: ^7.0, collision: ^6.1, phpunit: 9.5.10 }
-          - { test: 10, php: ^8.1, laravel: ^10.0, testbench: ^8.0, collision: ^7.0, phpunit: 9.6}
-          - { test: 11, php: ^8.2, laravel: ^10.0, testbench: ^8.0, collision: ^7.0, phpunit: 9.6}
-          - { test: 12, php: ^8.3, laravel: ^10.0, testbench: ^8.0, collision: ^7.0, phpunit: 9.6}
+          - { test: 1, php: ^8.1, laravel: ^9.0, testbench: ^7.0, collision: ^6.1, phpunit: 9.5.10 }
+          - { test: 2, php: ^8.1, laravel: ^10.0, testbench: ^8.0, collision: ^7.0, phpunit: 9.6}
+          - { test: 3, php: ^8.2, laravel: ^10.0, testbench: ^8.0, collision: ^7.0, phpunit: 9.6}
+          - { test: 4, php: ^8.3, laravel: ^10.0, testbench: ^8.0, collision: ^7.0, phpunit: 9.6}
 
 
     steps:
