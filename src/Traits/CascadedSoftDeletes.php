@@ -2,7 +2,6 @@
 
 namespace RaziAlsayyed\LaravelCascadedSoftDeletes\Traits;
 
-use Illuminate\Support\Str;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\LogicException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Exceptions\RuntimeException;
 use RaziAlsayyed\LaravelCascadedSoftDeletes\Jobs\CascadeSoftDeletes;
