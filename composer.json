@@ -34,7 +34,7 @@
     "scripts": {
         "test": "vendor/bin/phpunit",
         "lint": [
-    	    "./vendor/bin/php-cs-fixer fix -vvv --show-progress=dots"
+    	    "./vendor/bin/pint"
         ]
     },
     "extra": {
